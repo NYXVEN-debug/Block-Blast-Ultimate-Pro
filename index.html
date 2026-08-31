@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Block Blast Ultimate Pro</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%23ff007f'/><stop offset='100%' stop-color='%237928ca'/></linearGradient></defs><rect width='100' height='100' rx='25' fill='%23080414'/><rect x='15' y='15' width='32' height='32' rx='8' fill='url(%23g)'/><rect x='53' y='15' width='32' height='32' rx='8' fill='%23ffd700'/><rect x='15' y='53' width='32' height='32' rx='8' fill='%2300f2fe'/><rect x='53' y='53' width='32' height='32' rx='8' fill='url(%23g)'/></svg>">
     <style>
         * {
             box-sizing: border-box;
@@ -47,8 +48,22 @@
             display: none;
         }
 
+        /* Oyunun Havalı Logo Resmi / Alanı */
+        .game-logo-container {
+            width: 90px;
+            height: 90px;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 25px rgba(255, 0, 127, 0.6));
+            animation: float-logo 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes float-logo {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-8px) rotate(3deg); }
+        }
+
         h1 {
-            font-size: 46px;
+            font-size: 44px;
             margin-bottom: 5px;
             background: linear-gradient(135deg, #ffd700, #ff8c00);
             -webkit-background-clip: text;
@@ -381,6 +396,21 @@
     <audio id="bg-music" loop></audio>
 
     <div id="menu-screen" class="screen">
+        <div class="game-logo-container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <defs>
+                    <linearGradient id="main-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#ff007f"/>
+                        <stop offset="100%" stop-color="#7928ca"/>
+                    </linearGradient>
+                </defs>
+                <rect width="100" height="100" rx="25" fill="#1a1236" stroke="rgba(255,255,255,0.15)" stroke-width="3"/>
+                <rect x="15" y="15" width="32" height="32" rx="8" fill="url(#main-grad)" />
+                <rect x="53" y="15" width="32" height="32" rx="8" fill="#ffd700" />
+                <rect x="15" y="53" width="32" height="32" rx="8" fill="#00f2fe" />
+                <rect x="53" y="53" width="32" height="32" rx="8" fill="url(#main-grad)" />
+            </svg>
+        </div>
         <h1>BLOCK BLAST</h1>
         <div class="subtitle">Ultimate Pro Edition</div>
         <button class="btn" onclick="startNewGame()">OYUNA BAŞLA</button>
@@ -461,9 +491,8 @@
         let bombCount = 2;
         let soundEnabled = true;
         let comboStreak = 0;
-        let totalBlocksCleared = 0; // 10 blok patlatma sayacı için
+        let totalBlocksCleared = 0;
 
-        // Blok Renk Temaları
         const themes = [
             { name: "Neon Pembe", grad: "linear-gradient(135deg, #ff007f, #7928ca)" },
             { name: "Ateş Kırmızı", grad: "linear-gradient(135deg, #ff416c, #ff4b2b)" },
@@ -477,7 +506,6 @@
             { name: "Neon Yeşil", grad: "linear-gradient(135deg, #11998e, #38ef7d)" }
         ];
 
-        // 2 Renk Kombinasyonlu Geçişli Arka Plan Paletleri (Her 10 patlatmada değişir)
         const bgThemes = [
             { name: "Mor & Gece Mavisi", grad: "radial-gradient(circle at center, #2e1065 0%, #030712 100%)", panel: "rgba(46, 16, 101, 0.75)" },
             { name: "Pembe & Koyu Mor", grad: "radial-gradient(circle at center, #831843 0%, #0f051d 100%)", panel: "rgba(131, 24, 67, 0.75)" },
@@ -504,7 +532,6 @@
             document.getElementById('shop-screen').classList.remove('hidden');
             document.getElementById('shop-level').innerText = playerLevel;
 
-            // Blok Temaları Grid
             const themeGrid = document.getElementById('theme-grid');
             themeGrid.innerHTML = '';
             themes.forEach((t, index) => {
@@ -534,7 +561,6 @@
                 themeGrid.appendChild(item);
             });
 
-            // Arka Plan Temaları Grid
             const bgGrid = document.getElementById('bg-grid');
             bgGrid.innerHTML = '';
             bgThemes.forEach((bg, index) => {
@@ -569,7 +595,6 @@
         }
 
         function goToLobby() {
-            // Lobiye dönünce kayıt silinir (istediğin gibi devam etme kaldırıldı)
             localStorage.removeItem('block_blast_saved_board');
             document.getElementById('game-over-screen').classList.add('hidden');
             document.getElementById('game-screen').style.display = 'none';
@@ -601,7 +626,6 @@
             }
         }
 
-        // Sadece Mağaza için Kayıt / Yükleme Sistemi
         function saveGameProgress() {
             localStorage.setItem('block_blast_saved_board', JSON.stringify(board));
             localStorage.setItem('block_blast_saved_score', score);
@@ -623,7 +647,6 @@
         }
 
         function initGameSession() {
-            // Mağazadan çıkınca otomatik devam etme kontrolü
             const savedBoard = localStorage.getItem('block_blast_saved_board');
             if (savedBoard && board.every(row => row.every(cell => cell === 0))) {
                 board = JSON.parse(savedBoard);
@@ -653,7 +676,6 @@
             }
         }
 
-        // Parçacık Sistemi
         const canvas = document.getElementById('particle-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
@@ -731,7 +753,6 @@
         const boardWrapper = document.getElementById('board-wrapper');
         const scoreEl = document.getElementById('score');
         const playerLevelEl = document.getElementById('player-level');
-        const scoreboardBox = document.getElementById('scoreboard-box');
         const gameOverScreen = document.getElementById('game-over-screen');
         const finalScoreEl = document.getElementById('final-score');
         const dragGhostEl = document.getElementById('drag-ghost');
@@ -940,9 +961,8 @@
             let totalCleared = rowsToClear.length + colsToClear.length;
             if (totalCleared > 0) {
                 comboStreak++;
-                totalBlocksCleared += (totalCleared * 8); // Yaklaşık blok silme sayacı
+                totalBlocksCleared += (totalCleared * 8);
 
-                // HER 10 BLOK PATLATTIKTAN SONRA ARKA PLANI GEÇİŞLİ OLARAK DEĞİŞTİR
                 if (totalBlocksCleared >= 10) {
                     totalBlocksCleared = 0;
                     selectedBgIndex = (selectedBgIndex + 1) % bgThemes.length;
