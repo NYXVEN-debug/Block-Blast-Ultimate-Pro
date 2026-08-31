@@ -483,9 +483,67 @@
     <div id="drag-ghost"></div>
 
     <script>
+        // --- GÜVENLİK VE HİLE KORUMASI (TAMPER-PROOF) ---
+        let _score = 0;
+        let _scoreKey = Math.floor(Math.random() * 1000000);
+
+        Object.defineProperty(window, 'score', {
+            get: function() {
+                return _score ^ _scoreKey;
+            },
+            set: function(val) {
+                _score = val ^ _scoreKey;
+                updateScoreDisplay();
+            }
+        });
+
+        function updateScoreDisplay() {
+            const el = document.getElementById('score');
+            if (el) el.innerText = _score ^ _scoreKey;
+        }
+
+        function getScore() {
+            return _score ^ _scoreKey;
+        }
+
+        function setScore(val) {
+            _score = val ^ _scoreKey;
+            updateScoreDisplay();
+        }
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        document.addEventListener('keydown', function(e) {
+            if (
+                e.keyCode === 123 || 
+                (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || 
+                (e.ctrlKey && e.keyCode === 85)
+            ) {
+                e.preventDefault();
+                triggerPunishment();
+                return false;
+            }
+        });
+
+        setInterval(function() {
+            let before = performance.now();
+            debugger;
+            let after = performance.now();
+            if (after - before > 100) {
+                triggerPunishment();
+            }
+        }, 1000);
+
+        function triggerPunishment() {
+            alert("Hile denemesi algılandı! Skorun sıfırlanıyor piç :)");
+            setScore(0);
+            localStorage.clear();
+            location.reload();
+        }
+        // ---------------------------------------------
+
         const BOARD_SIZE = 8;
         let board = Array(BOARD_SIZE).fill(0).map(() => Array(BOARD_SIZE).fill(0));
-        let score = 0;
         let playerLevel = parseInt(localStorage.getItem('block_blast_level')) || 1;
         let currentPieces = [null, null, null];
         let bombCount = 2;
@@ -628,7 +686,7 @@
 
         function saveGameProgress() {
             localStorage.setItem('block_blast_saved_board', JSON.stringify(board));
-            localStorage.setItem('block_blast_saved_score', score);
+            localStorage.setItem('block_blast_saved_score', getScore());
             localStorage.setItem('block_blast_saved_bombs', bombCount);
             localStorage.setItem('block_blast_saved_streak', comboStreak);
             localStorage.setItem('block_blast_saved_pieces', JSON.stringify(currentPieces));
@@ -638,7 +696,7 @@
         function startNewGame() {
             localStorage.removeItem('block_blast_saved_board');
             board = Array(BOARD_SIZE).fill(0).map(() => Array(BOARD_SIZE).fill(0));
-            score = 0;
+            setScore(0);
             bombCount = 2;
             comboStreak = 0;
             totalBlocksCleared = 0;
@@ -650,7 +708,7 @@
             const savedBoard = localStorage.getItem('block_blast_saved_board');
             if (savedBoard && board.every(row => row.every(cell => cell === 0))) {
                 board = JSON.parse(savedBoard);
-                score = parseInt(localStorage.getItem('block_blast_saved_score')) || 0;
+                setScore(parseInt(localStorage.getItem('block_blast_saved_score')) || 0);
                 bombCount = parseInt(localStorage.getItem('block_blast_saved_bombs')) || 2;
                 comboStreak = parseInt(localStorage.getItem('block_blast_saved_streak')) || 0;
                 totalBlocksCleared = parseInt(localStorage.getItem('block_blast_saved_cleared')) || 0;
@@ -662,7 +720,7 @@
             document.getElementById('game-over-screen').classList.add('hidden');
             document.getElementById('game-screen').style.display = 'flex';
             document.getElementById('bomb-count').innerText = bombCount;
-            scoreEl.innerText = score;
+            updateScoreDisplay();
             playerLevelEl.innerText = playerLevel;
             applyStyles();
             initBoard();
@@ -751,7 +809,6 @@
 
         const boardEl = document.getElementById('board');
         const boardWrapper = document.getElementById('board-wrapper');
-        const scoreEl = document.getElementById('score');
         const playerLevelEl = document.getElementById('player-level');
         const gameOverScreen = document.getElementById('game-over-screen');
         const finalScoreEl = document.getElementById('final-score');
@@ -889,7 +946,7 @@
                 }
 
                 playSound('place');
-                score += activeDrag.piece.flat().reduce((a, b) => a + b, 0) * 12;
+                setScore(getScore() + (activeDrag.piece.flat().reduce((a, b) => a + b, 0) * 12));
                 currentPieces[activeDrag.index] = null;
                 document.getElementById(`slot-${activeDrag.index}`).innerHTML = '';
 
@@ -993,9 +1050,9 @@
 
                 let multiplier = 1 + (comboStreak * 0.5);
                 let addedScore = Math.floor(totalCleared * 140 * totalCleared * multiplier);
-                score += addedScore;
+                setScore(getScore() + addedScore);
 
-                let newLevel = Math.floor(score / 1200) + 1;
+                let newLevel = Math.floor(getScore() / 1200) + 1;
                 if (newLevel > playerLevel) {
                     playerLevel = newLevel;
                     playerLevelEl.innerText = playerLevel;
@@ -1009,7 +1066,7 @@
                 comboStreak = 0;
             }
 
-            scoreEl.innerText = score;
+            updateScoreDisplay();
             saveGameProgress();
         }
 
@@ -1039,7 +1096,7 @@
             }
             if (!canPlay) {
                 localStorage.removeItem('block_blast_saved_board');
-                finalScoreEl.innerText = `Toplam Skorun: ${score}`;
+                finalScoreEl.innerText = `Toplam Skorun: ${getScore()}`;
                 gameOverScreen.classList.remove('hidden');
             }
         }
